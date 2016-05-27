@@ -767,6 +767,7 @@ def console_put_char(con, x, y, c, flag=BKGND_DEFAULT):
         _lib.TCOD_console_put_char(con, x, y, c, flag)
 
 def console_put_char_ex(con, x, y, c, fore, back):
+    # type: (object, object, object, object, object, object) -> object
     if type(c) == str or type(c) == bytes:
         _lib.TCOD_console_put_char_ex(con, x, y, ord(c), fore, back)
     else:
