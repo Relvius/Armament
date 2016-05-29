@@ -1,5 +1,10 @@
 from src import libtcodpy as lt
 
+DEBUG = True
+
+LIGHT_RADIUS = 20
+ALGO = 2
+
 
 class Map:
     def __init__(self, cols, rows):
@@ -9,7 +14,10 @@ class Map:
         self.b_color_explored = lt.darker_blue
 
         self.blocked = [[True for x in xrange(cols)] for y in xrange(rows)]
-        self.explored = [[False for x in xrange(cols)] for y in xrange(rows)]
+        if DEBUG:
+            self.explored = [[True for x in xrange(cols)] for y in xrange(rows)]
+        else:
+            self.explored = [[False for x in xrange(cols)] for y in xrange(rows)]
 
         # Create rooms
         rooms = []
@@ -58,6 +66,8 @@ class Map:
         for col in range(min(col1, col2), max(col1, col2) + 1):
             self.blocked[row][col] = False
             self.blocked[row+1][col] = False
+        # This is a really specific fix to a certain configuration, when a tunnel goes first right then up.
+        self.blocked[row+1][max(col1, col2)+1] = False
 
     def vertical_tunnel(self, row1, row2, col):
         for row in range(min(row1, row2), max(row1, row2) + 1):
@@ -75,17 +85,25 @@ class Map:
         if player_facing == "N":
             for i in xrange(width):
                 lt.map_set_properties(self.fov, i, player_row+1, False, True)
+                if i < player_col-1 or i > player_col+1:
+                    lt.map_set_properties(self.fov, i, player_row, False, True)
         elif player_facing == "S":
             for i in xrange(width):
                 lt.map_set_properties(self.fov, i, player_row-1, False, True)
+                if i < player_col-1 or i > player_col+1:
+                    lt.map_set_properties(self.fov, i, player_row, False, True)
         elif player_facing == "W":
             for i in xrange(height):
                 lt.map_set_properties(self.fov, player_col+1, i, False, True)
+                if i < player_row-1 or i > player_row+1:
+                    lt.map_set_properties(self.fov, player_col, i, False, True)
         elif player_facing == "E":
             for i in xrange(height):
                 lt.map_set_properties(self.fov, player_col-1, i, False, True)
+                if i < player_row-1 or i > player_row+1:
+                    lt.map_set_properties(self.fov, player_col, i, False, True)
 
-        lt.map_compute_fov(self.fov, player_col, player_row, 15, True, 2)
+        lt.map_compute_fov(self.fov, player_col, player_row, LIGHT_RADIUS, True, ALGO)
 
     def draw(self):
         for row in xrange(len(self.explored)):
